@@ -1,0 +1,1 @@
+insert into `merchant_prod_att_name`(`id`,`parent_id`,`merchant_product_id`,`att_name_id`,`sort_value`,`company_id`,`type`,`source`) select null,`parent_id`,"'+ merchantProductId + '",`att_name_id`,`sort_value`,`company_id`,`type`,0from `product_att_name`where product_id = "'+ productId +'"

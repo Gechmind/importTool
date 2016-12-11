@@ -1,0 +1,1 @@
+select b.`name`,a.urls,a.content from `temptable`  b  LEFT JOIN picture a  on a.`code` = b.name order by b.id
