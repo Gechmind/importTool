@@ -1,9 +1,10 @@
 #dataFile
-csv/*.*
-data/*.*
-convert/*.*
+csv/
+data/
+convert/
 meta/
-mapping/*.*
+mapping/
+attricompare/*.json
 *.xlsx
 
 # Logs

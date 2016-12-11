@@ -70,45 +70,45 @@ var client = mysql.createConnection({
 //新建连接
 client.connect();
 
-async.series({
-	archive:function(callback){
-		service.archive.start(config).then(value => console.log(value);callback(null,"success")})
-	},
-	prepare:function(callback){
-		service.excel.start(config).then(value => {console.log(value);callback(null,"success")})
-	},
-	attribute:function(callback){
-		service.attribute.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	attributeConvert:function(callback){
-		service.attributeConvert.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	brand:function(callback){
-		service.brand.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	brandConvert:function(callback){
-		service.brandConvert.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	category:function(callback){
-		service.category.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	categoryCodeConvert:function(callback){
-		service.categoryCode.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	categoryAttribute:function(callback){
-		service.categoryAttr.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	warehouse:function(callback){
-		service.warehouse.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-	},
-	csvGenerator:function(callback){
-		service.nurture.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-	}
-},function(err,result){
-	console.log(config.splitSymbol,"\n","summary:");
-	console.log(result);
-	client.end();
-})
+// async.series({
+// 	archive:function(callback){
+// 		service.archive.start(config).then(value => console.log(value);callback(null,"success")})
+// 	},
+// 	prepare:function(callback){
+// 		service.excel.start(config).then(value => {console.log(value);callback(null,"success")})
+// 	},
+// 	attribute:function(callback){
+// 		service.attribute.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	attributeConvert:function(callback){
+// 		service.attributeConvert.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	brand:function(callback){
+// 		service.brand.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	brandConvert:function(callback){
+// 		service.brandConvert.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	category:function(callback){
+// 		service.category.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	categoryCodeConvert:function(callback){
+// 		service.categoryCode.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	categoryAttribute:function(callback){
+// 		service.categoryAttr.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	warehouse:function(callback){
+// 		service.warehouse.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	csvGenerator:function(callback){
+// 		service.nurture.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	}
+// },function(err,result){
+// 	console.log(config.splitSymbol,"\n","summary:");
+// 	console.log(result);
+// 	client.end();
+// })
 
 
 // ----------------------- 调试区--------------------------
@@ -116,17 +116,17 @@ async.series({
 /*
 * 文件归档
 */
-// service.archive.start(config).then(value => {
-// 	console.log(value)
-// 	client.end();
-// })
+service.archive.start(config).then(value => {
+	console.log(value)
+	client.end();
+})
 
 
 /**
 * 0 文件准备
 */
 
-// service.excel.writeJsonFile(config).then(value => {
+// service.excel.start(config).then(value => {
 // 	console.log(value)
 // 	client.end();
 // })
