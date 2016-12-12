@@ -84,8 +84,8 @@ function rawDataReplace(config){
 
 function csvHeader(config){
 	if(config.csv.minDefault && config.csv.minDefault.length > 0){
-		var combineDhead = config.csv.dHead.concat(minDHead);
-		var combineChead = config.csv.cHead.concat(minCHead);
+		var combineDhead = config.csv.dHead.concat(config.csv.minDHead);
+		var combineChead = config.csv.cHead.concat(config.csv.minCHead);
 		csvWriter(config,[combineDhead]);
 		csvWriter(config,[combineChead]);
 		return true;
@@ -98,7 +98,7 @@ function csvHeader(config){
 
 function csvWriter(config,row){
 	try{
-		var filePath = path.join(config.rootPath,config.csv.destFolder,config.csv.name);
+		var filePath = path.join(config.rootPath,config.csv.destFolder,config.treeName + ".csv");
 		stringify(row, function(err, output){
 		    let recordString = iconv.encode(output,'GBK');
 		    // console.log(output);

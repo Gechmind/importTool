@@ -5,77 +5,217 @@ var async = require("async");
 var service = require("./service/index.js")
 
 
-function* idGenerator(start){
-	let s = start || 1;
-	while(true){
-		yield s++;
-	}
-}
-
 var excelConfig = {
-	name:"./data/mp.xlsx",
-	brandColumn:3, // 品牌所在列
-	categoryCodeColumn:4, // 类目code所在列
-	attributeColumn:6 //属性所在列
+	name:"./data/礼品.xls",
+	mpSheet:"商品",
+	cateSheet:"类目",
+	brandColumn:4, // 品牌所在列
+	categoryCodeColumn:3, // 类目code所在列
+	attributeColumn:9 //属性所在列
 }
 
+/**
+* 需要注意 chead 应该和原始的excel列要对应上。这样转csv时数据列不会出错
+*/
 var csvConfig = {
 	destFolder:"./csv/",
-	name : "./out.csv",
-	dHead : ["thirdMerchantProductCode","chineseName","merchantProductPrice","brandId","categoryTreeNodeId","url","attributePairId","content"],
-	cHead : ["第三方商品编码","商品名称*","普通售价*","品牌Id","商品类目ID*","商品图片","属性键值对","文描"],
-	minDHead : [],
-	minCHead : [],
-	minDefault:[]
+	// name : "./out.csv",
+	dHead : ["thirdMerchantProductCode","chineseName","subtitle","categoryTreeNodeId","brandId","merchantProductPrice","marketPrice","url","content","attributeIdPair"],
+	cHead : ["第三方商品编码","商品名称*","副标题","商品类目ID*","品牌Id","普通售价*","市场价*","商品图片","文描","属性键值对"],
+	minDHead : ["grossWeight","netWeight","realStockNum","placeOfOrigin","type","saleType","combinType","isBargain","freightAttribute","shortcutPurchase"],
+	minCHead : ["毛重*","商品净重*","库存量","产地*","商品类型*","销售类型*","组合商品类型","议价类型","配送属性*","一键购"],
+	minDefault:["0","0","100","中国","普通商品","普通","0","一口价","重货","不支持"]
 }
 
 var config = {
 	splitSymbol:"-----------------------------",
-	companyId : 11009, //30 11
-	merchantId : 1100900,//11115
-	treeName : "来伊份",
-	defaultWarehouseName:"来伊份默认",//默认仓库名称
+	companyId : 11013, //30 11
+	merchantId : 1101300,//11115
+	archivePrefix:"Saas饰品",//归档目录前缀
+	treeName : "Saas饰品", //最终输出的文件名也复用这个
+	defaultWarehouseName:"Saas饰品",//默认仓库名称
 	attributeWithBrand:[], //属性中绑定品牌  
 	excel : excelConfig,
 	csv : csvConfig,
-	rootPath:__dirname,
+	rootPath:__dirname, //当前目录
 	category : "./data/category.json",   //类目json文件
 	brand:"./data/brand.json",   //品牌json文件
 	rawCategory: "./data/categoryCode.json", //商品类目code json文件
 	attribute : "./data/attribute.json",
-	startId : 1, 
-	categoryTreeIdGe : idGenerator(11),//   lyf  3  saas  11
-	categoryIdGe : idGenerator(1500),//   lyf 3000   saas 1500
-	categoryTreeNodeGe : idGenerator(1500), //   lyf 3000  saas  1500
-	pageIdGe : idGenerator(15),  //   lyf 2  saas 15 
-	pageCategoryTreeIdGe : idGenerator(16), //   lyf 2    saas 16
-	relatinIdGe : idGenerator(1), //   lyf   1500  saas 1     前后台类目树
-	brandIdGe: idGenerator(500),        //   lyf  500   saas 500
-	attrNameIdGe: idGenerator(500),  //   lyf  2000   Saas 500
-	attrValueIdGe: idGenerator(1500),       //   lyf 3500  saas 1500
-	categoryAttNameIdGe:idGenerator(1000),  //   lyf 2000     saas 1000
-	categoryAttValueIdGe:idGenerator(15000), //  lyf 35000    saas  15000
-	warehouseIdGe:idGenerator(10),    // Saas  10   lyf 20   hh  10 
-	merchantWareIdGe:idGenerator(10)  // Saas  10   lyf20    hh 10 
+	// currentIds :"44,9687,9687,47,48,3652,2196,846,4458,2650,65642,40,40" //首次应该从线上获取对应的id，sql路径 ./sql/startId.sql
+	startId : 1
 }
 
 var client = mysql.createConnection({
 		host:"localhost",
 		port:'3306',
 		user:'root',
-		password:'',
+		password:'root',
 		database:"product"
 });
+
 
 //新建连接
 client.connect();
 
+var serviceChain = [
+	service.archive,
+	service.generator,
+	service.excel,
+	service.attribute,
+	service.attributeConvert,
+	service.brand,
+	service.brandConvert,
+	service.category,
+	service.categoryCode,
+	service.categoryAttr,
+	service.warehouse,
+	service.nurture
+]
+
+async.mapSeries(serviceChain
+	,function(item,callback){
+		item.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+	}
+	,function(err,result){
+	console.log(config.splitSymbol,"\n","summary:");
+	console.log(result);
+	client.end();
+})
+
+
+
+// ----------------------- 调试区--------------------------
+
+
+
+
+/*
+* 0、文件归档、文件夹创建
+*/
+// service.archive.start(config).then(value => {
+// 	console.log(value)
+// 	client.end();
+// })
+
+/**
+* 1、id 生成器初始化
+*/
+// service.generator.start(config,client).then(value =>{
+// 	// console.log(config);
+// 	console.log(value);
+// })
+
+
+/**
+* 2、 输入文件解析
+*/
+
+// service.excel.start(config).then(value => {
+// 	console.log(value)
+// 	client.end();
+// })
+
+
+
+
+/*
+* 3、属性去重，插表 
+*/
+
+// service.attribute.start(config,client).then(function(value){
+// 	console.log(value);
+// 	client.end();
+// })
+
+/*
+* 4、字面属性名值 转换为 id：id的形式 
+*/
+// service.attributeConvert.start(config).then(function(value){
+// 	console.log(value);
+// 	client.end();
+// })
+
+/**
+* 5、 品牌新增
+*/
+
+// service.brand.start(config,client)
+// .then(function(value){ //品牌新增
+// 	console.log(value);
+// 	client.end();
+// })
+/**
+* 6 品牌名称转换
+*/
+// service.brandConvert.start(config).then(function(value){
+// 	console.log("品牌转换" + value);
+// 	client.end();
+// })
+
+/**
+* 7.1 、类目校验 不插表，只输出树状内容
+*/
+
+// service.category.validate(config).then(function(value){
+// 	console.log(value);
+// })
+
+/**
+* 7 、类目插入 
+*/
+
+// service.category.start(config,client).then(function(value){
+// 	console.log(value);
+// 	client.end();
+// })
+
+/**
+* 8、类目数据转换
+*/
+
+// service.categoryCode.start(config).then(function(value){
+// 	console.log(value);
+// 	client.end();
+// })
+
+/**
+* 9、类目属性
+*/
+
+// service.categoryAttr.start(config,client)
+// .then(function(){
+// 	console.log("cate attribute done");
+// 	client.end();
+// })
+
+/**
+* 10、仓库初始化
+*/
+// service.warehouse.start(config,client)
+// .then(function(value){
+// 	console.log(value);
+// 	client.end();
+// })
+
+/*
+* 11、 文件转csv & 内容替换
+*/
+
+// service.nurture.start(config).then(function(value){
+// 	console.log(value);
+// })
+
+
 // async.series({
 // 	archive:function(callback){
-// 		service.archive.start(config).then(value => console.log(value);callback(null,"success")})
+// 		service.archive.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	},
+// 	generator:function(callback){
+// 		service.generator.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
 // 	},
 // 	prepare:function(callback){
-// 		service.excel.start(config).then(value => {console.log(value);callback(null,"success")})
+// 		service.excel.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
 // 	},
 // 	attribute:function(callback){
 // 		service.attribute.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
@@ -108,111 +248,4 @@ client.connect();
 // 	console.log(config.splitSymbol,"\n","summary:");
 // 	console.log(result);
 // 	client.end();
-// })
-
-
-// ----------------------- 调试区--------------------------
-
-/*
-* 文件归档
-*/
-service.archive.start(config).then(value => {
-	console.log(value)
-	client.end();
-})
-
-
-/**
-* 0 文件准备
-*/
-
-// service.excel.start(config).then(value => {
-// 	console.log(value)
-// 	client.end();
-// })
-/*
-* 1、属性去重，插表 
-*/
-
-// service.attribute.start(config,client).then(function(value){
-// 	console.log(value);
-// 	client.end();
-// })
-
-/*
-* 2、字面属性名值 转换为 id：id的形式 
-*/
-// service.attributeConvert.start(config).then(function(value){
-// 	console.log(value);
-// 	client.end();
-// })
-
-/**
-* 3、 品牌新增
-*/
-
-// service.brand.start(config,client)
-// .then(function(value){ //品牌新增
-// 	console.log(value);
-// 	client.end();
-// })
-/**
-* 4 品牌名称转换
-*/
-// service.brandConvert.start(config).then(function(value){
-// 	console.log("品牌转换" + value);
-// 	client.end();
-// })
-
-/**
-* 5.1 、类目校验 不插表，只输出树状内容
-*/
-
-// service.category.validate(config).then(function(value){
-// 	console.log(value);
-// })
-
-/**
-* 5 、类目插入 
-*/
-
-// service.category.start(config,client).then(function(value){
-// 	console.log(value);
-// 	client.end();
-// })
-
-/**
-* 6、类目数据转换
-*/
-
-// service.categoryCode.start(config).then(function(value){
-// 	console.log(value);
-// 	client.end();
-// })
-
-/**
-* 7、类目属性
-*/
-
-// service.categoryAttr.start(config,client)
-// .then(function(){
-// 	console.log("cate attribute done");
-// 	client.end();
-// })
-
-/**
-* 8 仓库初始化
-*/
-// service.warehouse.start(config,client)
-// .then(function(value){
-// 	console.log(value);
-// 	client.end();
-// })
-
-/*
-* 9 文件转csv & 内容替换
-*/
-
-// service.nurture.start(config).then(function(value){
-// 	console.log(value);
 // })

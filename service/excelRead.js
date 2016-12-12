@@ -18,28 +18,30 @@ function getExcelObj(config){
 	// var dataRootPath = config.dataRootPath;
 	var excel = xlsx.parse(fs.readFileSync(dir));
 
+	// console.log(excel);
 	// var rawDataConfig =  config.rawDataConfig || 
-
+	let brandIndex = config.excel.brandColumn;
+	let cateIndex = config.excel.categoryCodeColumn;
+	let attIndex = config.excel.attributeColumn;
 	//excelSheet
 	for(let sheet  of excel){
 		let name = sheet.name;
-		if(name == "mp"){
+		if(name == config.excel.mpSheet){
 			// sheetData
 			for(let i in sheet.data){
 				// console.log(row)
 				if(i > 0){
 					let row = sheet.data[i];
-					brandJson.push(row[3]);
-					categoryCodeJson.push(row[4]);
-					attributeJson.push(JSON.parse(row[6]));
+					brandJson.push(row[brandIndex]);
+					categoryCodeJson.push(row[cateIndex]);
+					attributeJson.push(JSON.parse(row[attIndex]));
 				}
 				
 			}
-		}else if(name == "类目"){
+		}else if(name == config.excel.cateSheet){
 
 			categoryJson = sheet.data;
-			
-			
+			categoryJson.shift();
 			// console.log(categoryJson)
 		}
 		// let config = rawDataConfig[name]

@@ -6,10 +6,13 @@ var basePromise = require("../lib/basePromise");
 
 var attributMapping = new Array()
 var independenceAttr = ['商品毛重','产地','规格','品牌'];
-var independencefileName  = ['weight','region','standar','brandId'];
+//需要从attitude中解析的属性，比如 brandId 品牌
+var independencefileName  = ['weight','region','standar','brandName'];
+var independenceOutput = ['','','',''];
+
 //需要忽略的属性
 var avoidHandlerAttr = ['商品名称','商品编号','店铺','货号'];
-var independenceOutput = ['','',''];
+
 
 var config;
 var client;

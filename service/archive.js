@@ -20,7 +20,7 @@ function archive(config,archivePath){
 function mkdir(config){
 	var timestap = new Date().getTime() + "/";
 	//归档路径加入公司中文名称
-	timestap = config.treeName + timestap;
+	timestap = config.archivePrefix + timestap;
 	var archivePath = path.join(config.rootPath,config.csv.destFolder,timestap)
 	fs.mkdirSync(archivePath)
 	archive(config,archivePath);

@@ -8,7 +8,10 @@ var categoryAttrService = require("./categoryAttr.js");
 var categoryCodeConvert = require("./categorycodeconvert.js");
 var warehouseService = require("./wareHouseStock.js");
 var nurture = require("./nurture.js");
-var archive = require("./archive");
+var archive = require("./archive.js");
+var generator = require("./generator.js");
+
+module.exports.generator = generator;
 
 module.exports.archive = archive;
 

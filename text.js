@@ -81,16 +81,16 @@ function getNu(){
 // }
 
 
-co(function* (){
-	// var x = ;
-	var t = 1;
-	while(t < 10){
-		var x = yield Promise.resolve(1);
-		console.log(x)
-	}
+// co(function* (){
+// 	// var x = ;
+// 	var t = 1;
+// 	while(t < 10){
+// 		var x = yield Promise.resolve(1);
+// 		console.log(x)
+// 	}
 	
-	// console.log(t)
-})
+// 	// console.log(t)
+// })
 // // function t(){
 // 	var x =  ge();
 // 	// console.log(x.next().value);
@@ -111,19 +111,19 @@ co(function* (){
 // console.log([...logReturned(genFuncWithReturn())]);
 
 // 数组的写法
-co(function* () {
-  var res = yield [
-    Promise.resolve(1),
-    Promise.resolve(2)
-  ];
-  console.log(res); 
-})
+// co(function* () {
+//   var res = yield [
+//     Promise.resolve(1),
+//     Promise.resolve(2)
+//   ];
+//   console.log(res); 
+// })
 
-// 对象的写法
-co(function* () {
-  var res = yield {
-    1: Promise.resolve(1),
-    2: Promise.resolve(2),
-  };
-  console.log(res); 
-})
+// // 对象的写法
+// co(function* () {
+//   var res = yield {
+//     1: Promise.resolve(1),
+//     2: Promise.resolve(2),
+//   };
+//   console.log(res); 
+// })

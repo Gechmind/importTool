@@ -1,12 +1,64 @@
-运行环境要求：
+#数据初始化脚本：
+## 执行环境
 nodejs 6.4 以上
 (js-xlsx读取浮点数据时会用到Math.log()计算精度，6.4以前版本V8执行log方法会静默退出)
 
+## 数据准备
+1、输入文件配置 excelConfig
 
-数据导入和装换
++ name  __must__
+    - 输入文件相对路径及名称
+    - 支持的格式
+        * .xlsx 文件
+        * .xls 文件  
++ sheet名称 __must__
+    - mpSheet  商品
+    - cateSheet 类目 
+    - 说明:脚本根据此配置来识别商品或者类目数据在哪个sheet中
++ 转换列配置 __must__
+    - 品牌列
+    - 类目编码列
+    - 属性列
+    - 说明:脚本根据此配置提取数据持久化至数据库并输出中间文件供后续步骤使用
+        
+2、输出文件配置 csvConfig
 
-0、JSON数据准备
++ 输出目录：默认./csv/
++ dHead:字段行，对应odss相关服务实体字段名称，可从导入模板匹配
++ cHead:注释行，对应odss相关服务实体字段注释名称，可从导入模板匹配
++ minDHead:其他支持字段名称
++ minCHead:其他支持字段注释名称
++ minDefault:其他支持字段默认值
 
+3、基本配置
+
++ archivePrefix: 归档目录前缀,目前仅归档csv目录内文件
++ currentIds:相关业务表字段主键起始值。如果不设置该字段，则从client设置的数据库中读取。对于线上的数据，应该执行./sql/startId.sql 中sql,用执行结果设置本字段。__注意sql中字段顺序需要和 service/generator.js中configGenerate 配置一致__
++ treeName:类目树名称 暨 最终输出文件名
+
+4、数据库配置
+
++ client：ip,port...
+
+
+
+
+## 执行顺序：
+
+* __archive__:_文件归档、文件夹创建_ 
+    * => __generator__:_id 生成器初始化_  
+        * => __excel__:_输入文件解析_ 
+            * => __attribute__:_属性去重，持久化_
+                * => __attributeConvert__:_属性转换 (name:name => id:id)_
+                    * => __brand__:_品牌新增_
+                        * => __brandConvert__:_品牌名称转换_
+                            * => _类目校验_
+                            * => __category__:_类目解析、持久化_
+                                * => __categoryCode__:_类目数据转换_
+                                    * => __categoryAttr__:_类目属性_
+                                        * => __warehouse__:_仓库初始化_
+                                            * => __nurture__:_内容替换 & csv文件输出_ 
+## 主要业务操作
 1、品牌导入：
 
 + 脚本名称
@@ -122,7 +174,7 @@ nodejs 6.4 以上
 11、 生成csv文件供后台导入
 
 
-12、脚本后续功能:
+## 脚本后续功能:
 
 + 本地表的自动创建，自动清理脚本
 + ~~产品导入，商品继承实现~~  __@deprecate__

@@ -96,11 +96,12 @@ function dbInsert(catAttrMap){
 
 /**
 *  首先根据属性Set展开。使整个cate-attributeName的数组扁平
+*
 */
 
 function dbInsertPlain(catAttrMap){
 	var taskArray = Array.from(catAttrMap);
-	console.log("category大小:"+ taskArray.length);
+	console.log("涉及类目属性推导category大小:"+ taskArray.length);
 	var skretch = new Array();
 
 	taskArray.forEach(function(currentValue){

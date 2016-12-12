@@ -64,7 +64,7 @@ exports.start = function(iconfig,iclient){
 	console.log(config.splitSymbol);
 	console.log("warehouse add start");
 
-	return insertChain(client.defaultWarehouseName)
+	return insertChain(iconfig.defaultWarehouseName)
 			.then(function(){
 				return Promise.resolve("warehouse add end");
 	})
