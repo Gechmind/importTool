@@ -4,7 +4,7 @@ nodejs 6.4 以上
 (js-xlsx读取浮点数据时会用到Math.log()计算精度，6.4以前版本V8执行log方法会静默退出)
 
 ## 数据准备
-1、输入文件配置 excelConfig
+1、输入文件配置 => excelConfig
 
 + name  __must__
     - 输入文件相对路径及名称
@@ -16,29 +16,57 @@ nodejs 6.4 以上
     - cateSheet 类目 
     - 说明:脚本根据此配置来识别商品或者类目数据在哪个sheet中
 + 转换列配置 __must__
-    - 品牌列
-    - 类目编码列
-    - 属性列
+    - brandColumn:品牌列
+    - categoryCodeColumn:类目编码列
+    - attributeColumn:属性列
     - 说明:脚本根据此配置提取数据持久化至数据库并输出中间文件供后续步骤使用
         
-2、输出文件配置 csvConfig
+2、输出文件配置 => csvConfig
 
-+ 输出目录：默认./csv/
++ destFolder:输出目录,默认./csv/
 + dHead:字段行，对应odss相关服务实体字段名称，可从导入模板匹配
 + cHead:注释行，对应odss相关服务实体字段注释名称，可从导入模板匹配
 + minDHead:其他支持字段名称
 + minCHead:其他支持字段注释名称
 + minDefault:其他支持字段默认值
 
-3、基本配置
-
+3、基本配置 => config
++ splitSymbol:输出分隔符
++ companyId
++ merchantId
++ treeName :类目树名称，输出csv文件名
++ defaultWarehouseName : 默认仓库名称
 + archivePrefix: 归档目录前缀,目前仅归档csv目录内文件
 + currentIds:相关业务表字段主键起始值。如果不设置该字段，则从client设置的数据库中读取。对于线上的数据，应该执行./sql/startId.sql 中sql,用执行结果设置本字段。__注意sql中字段顺序需要和 service/generator.js中configGenerate 配置一致__
 + treeName:类目树名称 暨 最终输出文件名
 
-4、数据库配置
+4、数据库配置 => dbConfig __must__
 
-+ client：ip,port...
++ host : 数据库ip或者域名
++ port : 数据库端口
++ user : 用户名
++ password : 用户密码
++ database : schema名称
+    +  dml中制定schema名称，则使用dml语句中的schema
+    +  单个schema表数据导出 -> dumpTables描述
++ singleDatabase 见 
+    + true -> dumpTables描述
+    + false
++ dumpSchema 是否导出表结构
+    + false
+    + true 
++ dumpTables
+    + singleDatabase = true 时必须是[tab1,tab2,tab3...]形式,schema使用database指定的schema
+    + singleDatabase = false  时必须是[schemaX.tab1,schemaY.tab2...]形式,将根据解析的schema分别生成对应导出文件。
++ dumpFolder：导出目录
+
+5、~~export.bat数据库脚本输出配置~~ __@deprecate__
++ mysqldumpExePath="C:\Program Files\mysql-5.6.31-winx64\bin\mysqldump.exe"
++ dbHost=172.16.1.30
++ dbUser=root
++ dbPassword=root
++ rootPath=%~dp0 
++ savePath= "C:\Program Files\Git\importTool\csv\"
 
 
 
@@ -58,6 +86,8 @@ nodejs 6.4 以上
                                     * => __categoryAttr__:_类目属性_
                                         * => __warehouse__:_仓库初始化_
                                             * => __nurture__:_内容替换 & csv文件输出_ 
+                                                * => __batExecutor__:_sql脚本导出_
+                                            
 ## 主要业务操作
 1、品牌导入：
 
@@ -179,6 +209,7 @@ nodejs 6.4 以上
 + 本地表的自动创建，自动清理脚本
 + ~~产品导入，商品继承实现~~  __@deprecate__
 + 原始数据的替换自动实现。 
++ url目录替换规则
 + 添加Promise链的异常处理，提升可靠性能   __部分实现__
 + 导入和转换功能合并，步骤的串行执行，实现一键完成导入  __已实现__
 + 所有数据库表操作计数并统计输出  
@@ -186,7 +217,7 @@ nodejs 6.4 以上
 + 多产品数据目录自动归集功能，grunt实现
 + 流数据装换，导出对应的JSON数据集。 __已实现__
 
-+ 不需要全量读取的数据用流的方式替换
-+ nodejs  es6切换后，验证csv文件读取
++ ~~不需要全量读取的数据用流的方式替换~~
++ ~~nodejs  es6切换后，验证csv文件读取~~
 
 

@@ -4,6 +4,30 @@ var Promise = require("bluebird");
 var async = require("async");
 var service = require("./service/index.js")
 
+var dbConfig = {
+	host:"localhost",
+	port:'3306',
+	user:'root',
+	password:'root',
+	database:"product",
+	singleDatabase:false,
+	dumpSchema:false,
+	dumpTables:["category_tree",
+				"product.category",
+				"product.category_tree_node",
+				"product.page",
+				"product.page_category_tree",
+				"product.category_tree_node_relation",
+				"product.brand",
+				"product.attribute_name",
+				"product.attribute_value",
+				"product.category_att_name",
+				"product.category_att_value",
+				"stock.warehouse",
+				"stock.merchant_warehouse"],
+	dumpFolder:"./csv/"
+}
+
 
 var excelConfig = {
 	name:"./data/礼品.xls",
@@ -29,15 +53,18 @@ var csvConfig = {
 
 var config = {
 	splitSymbol:"-----------------------------",
-	companyId : 11013, //30 11
-	merchantId : 1101300,//11115
-	archivePrefix:"Saas饰品",//归档目录前缀
+	companyId : 11018, //30 11
+	merchantId : 1101800,//11115
+	archivePrefix:"Saas",//归档目录前缀
 	treeName : "Saas饰品", //最终输出的文件名也复用这个
 	defaultWarehouseName:"Saas饰品",//默认仓库名称
 	attributeWithBrand:[], //属性中绑定品牌  
+	db : dbConfig,
 	excel : excelConfig,
 	csv : csvConfig,
 	rootPath:__dirname, //当前目录
+	// shellPath:"./shell/export.bat",
+	// stdoutSwitch:false,//脚本输出开关
 	category : "./data/category.json",   //类目json文件
 	brand:"./data/brand.json",   //品牌json文件
 	rawCategory: "./data/categoryCode.json", //商品类目code json文件
@@ -47,41 +74,42 @@ var config = {
 }
 
 var client = mysql.createConnection({
-		host:"localhost",
-		port:'3306',
-		user:'root',
-		password:'root',
-		database:"product"
+		host:dbConfig.host,
+		port:dbConfig.port,
+		user:dbConfig.user,
+		password:dbConfig.password,
+		database:dbConfig.database
 });
 
 
-//新建连接
-client.connect();
+// //新建连接
+// client.connect();
 
-var serviceChain = [
-	service.archive,
-	service.generator,
-	service.excel,
-	service.attribute,
-	service.attributeConvert,
-	service.brand,
-	service.brandConvert,
-	service.category,
-	service.categoryCode,
-	service.categoryAttr,
-	service.warehouse,
-	service.nurture
-]
+// var serviceChain = [
+// 	service.archive,
+// 	service.generator,
+// 	service.excel,
+// 	service.attribute,
+// 	service.attributeConvert,
+// 	service.brand,
+// 	service.brandConvert,
+// 	service.category,
+// 	service.categoryCode,
+// 	service.categoryAttr,
+// 	service.warehouse,
+// 	service.nurture,
+// 	service.batExecutor
+// ]
 
-async.mapSeries(serviceChain
-	,function(item,callback){
-		item.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-	}
-	,function(err,result){
-	console.log(config.splitSymbol,"\n","summary:");
-	console.log(result);
-	client.end();
-})
+// async.mapSeries(serviceChain
+// 	,function(item,callback){
+// 		item.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+// 	}
+// 	,function(err,result){
+// 	console.log(config.splitSymbol,"\n","summary:");
+// 	console.log(result);
+// 	client.end();
+// })
 
 
 
@@ -205,6 +233,14 @@ async.mapSeries(serviceChain
 // service.nurture.start(config).then(function(value){
 // 	console.log(value);
 // })
+
+/**
+* 12、批量文件输出
+*/
+
+service.batExecutor.start(config).then((value)=>{
+	console.log(value);
+})
 
 
 // async.series({
