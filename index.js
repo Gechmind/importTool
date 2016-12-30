@@ -2,7 +2,8 @@ var mysql = require("mysql");
 var fs = require("fs");
 var Promise = require("bluebird");
 var async = require("async");
-var service = require("./service/index.js")
+var basePromise = require("./lib/basePromise.js");
+var service = require("./service/index.js");
 
 var dbConfig = {
 	host:"localhost",
@@ -12,7 +13,7 @@ var dbConfig = {
 	database:"product",
 	singleDatabase:false,
 	dumpSchema:false,
-	dumpTables:["category_tree",
+	dumpTables:["product.category_tree",
 				"product.category",
 				"product.category_tree_node",
 				"product.page",
@@ -28,6 +29,17 @@ var dbConfig = {
 	dumpFolder:"./csv/"
 }
 
+
+var onlineConfig = {
+	stratIndex:0,
+	pageSize:1000,
+	totalLimit:250000,//拉取总量　仅对product有效
+	sigleFileRows:1000, //生成文件行数，务必比单页数据库记录数要大
+	batch:1482751473213 || new Date().getTime()
+	// connection,
+	// fn,
+	// sqlPrefix
+}
 
 var excelConfig = {
 	name:"./data/礼品.xls",
@@ -53,15 +65,18 @@ var csvConfig = {
 
 var config = {
 	splitSymbol:"-----------------------------",
-	companyId : 11018, //30 11
+	test:false,
+	companyId : 1003, //30 11
 	merchantId : 1101800,//11115
 	archivePrefix:"Saas",//归档目录前缀
-	treeName : "Saas饰品", //最终输出的文件名也复用这个
-	defaultWarehouseName:"Saas饰品",//默认仓库名称
+	treeName : "母婴商城", //最终输出的文件名也复用这个
+	defaultWarehouseName:"母婴商城",//默认仓库名称
 	attributeWithBrand:[], //属性中绑定品牌  
 	db : dbConfig,
 	excel : excelConfig,
 	csv : csvConfig,
+	onlineConfig:onlineConfig,
+	categoryAttValueLimit:10, //对于值比较的多丢弃，否则会造成方法栈溢出 !!
 	rootPath:__dirname, //当前目录
 	// shellPath:"./shell/export.bat",
 	// stdoutSwitch:false,//脚本输出开关
@@ -69,7 +84,7 @@ var config = {
 	brand:"./data/brand.json",   //品牌json文件
 	rawCategory: "./data/categoryCode.json", //商品类目code json文件
 	attribute : "./data/attribute.json",
-	// currentIds :"44,9687,9687,47,48,3652,2196,846,4458,2650,65642,40,40" //首次应该从线上获取对应的id，sql路径 ./sql/startId.sql
+	currentIds :"44,9687,9687,66671,66671,6666538,6666173,6666248,6666946,2650,65642,666621,666621", //首次应该从线上获取对应的id，sql路径 ./sql/startId.sql
 	startId : 1
 }
 
@@ -82,42 +97,71 @@ var client = mysql.createConnection({
 });
 
 
-// //新建连接
-// client.connect();
+// // //新建连接
+client.connect();
 
-// var serviceChain = [
-// 	service.archive,
-// 	service.generator,
-// 	service.excel,
-// 	service.attribute,
-// 	service.attributeConvert,
-// 	service.brand,
-// 	service.brandConvert,
-// 	service.category,
-// 	service.categoryCode,
-// 	service.categoryAttr,
-// 	service.warehouse,
-// 	service.nurture,
-// 	service.batExecutor
-// ]
 
-// async.mapSeries(serviceChain
-// 	,function(item,callback){
-// 		item.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	}
-// 	,function(err,result){
-// 	console.log(config.splitSymbol,"\n","summary:");
-// 	console.log(result);
-// 	client.end();
-// })
+var serviceChain = [
+	// service.archive,
+	// service.generator,
+	// // service.onlineData,
+	// // service.excel,
+	// service.attribute,
+	// service.attributeConvert,
+	// service.brand,
+	// service.brandConvert,
+	// service.category,
+	// service.categoryCode,
+	// service.categoryAttr,
+	// service.warehouse,
+	// service.nurtureFromExcel,
+	service.nurtrueFromDB,
+	service.batExecutor
+]
+
+async.mapSeries(serviceChain
+	,function(item,callback){
+		item.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
+	} 
+	,function(err,result){
+	console.log(config.splitSymbol,"\n","summary:");
+	console.log(result);
+	client.end();
+})
 
 
 
 // ----------------------- 调试区--------------------------
 
+/*
+* connection 
+*/
+//获取类目
+// service.onlineData.getCategory(config,client).then(value=>{
+// 	console.log(value);
+// 	client.end();
+// }).catch((err)=>{
+// 	console.log(err);
+// 	client.end();
+// })
 
+// 获取商品
+// service.onlineData.getProduct(config,client).then(value=>{
+// 	console.log(value);
+// 	client.end();
+// }).catch((err)=>{
+// 	console.log(err);
+// 	client.end();
+// })
 
-
+// 并行获取
+// service.onlineData.start(config,client).then(value=>{
+// 	console.log(value);
+// 	client.end();
+// }).catch((err)=>{
+// 	console.log(err);
+// 	client.end();
+// })
 /*
 * 0、文件归档、文件夹创建
 */
@@ -150,6 +194,9 @@ var client = mysql.createConnection({
 /*
 * 3、属性去重，插表 
 */
+// config.test = true;
+// config.attrNameIdGe = basePromise.ge(1);
+// config.attrValueIdGe = basePromise.ge(1);
 
 // service.attribute.start(config,client).then(function(value){
 // 	console.log(value);
@@ -168,6 +215,7 @@ var client = mysql.createConnection({
 * 5、 品牌新增
 */
 
+// config.brandIdGe = basePromise.ge(1);
 // service.brand.start(config,client)
 // .then(function(value){ //品牌新增
 // 	console.log(value);
@@ -185,14 +233,21 @@ var client = mysql.createConnection({
 * 7.1 、类目校验 不插表，只输出树状内容
 */
 
+
 // service.category.validate(config).then(function(value){
 // 	console.log(value);
+// 	client.end();
 // })
 
 /**
 * 7 、类目插入 
 */
-
+// config.categoryTreeIdGe = basePromise.ge(1);//   lyf  3  saas  11
+// config.categoryIdGe  = basePromise.ge(1);//   lyf 3000   saas 1500
+// config.categoryTreeNodeGe  = basePromise.ge(1); //   lyf 3000  saas  1500
+// config.pageIdGe  = basePromise.ge(1);  //   lyf 2  saas 15 
+// config.pageCategoryTreeIdGe  = basePromise.ge(1); //   lyf 2    saas 16
+// config.relatinIdGe  = basePromise.ge(1); //   lyf   1500  saas 1     前后台类目树
 // service.category.start(config,client).then(function(value){
 // 	console.log(value);
 // 	client.end();
@@ -211,6 +266,8 @@ var client = mysql.createConnection({
 * 9、类目属性
 */
 
+// config.categoryAttNameIdGe = basePromise.ge(1);  //   lyf 2000     saas 1000
+// config.categoryAttValueIdGe = basePromise.ge(1); //  lyf 35000    saas  15000
 // service.categoryAttr.start(config,client)
 // .then(function(){
 // 	console.log("cate attribute done");
@@ -220,6 +277,8 @@ var client = mysql.createConnection({
 /**
 * 10、仓库初始化
 */
+// config.warehouseIdGe = basePromise.ge(1);    // Saas  10   lyf 20   hh  10 
+// config.merchantWareIdGe = basePromise.ge(1);  // Saas  10   lyf20    hh 10 
 // service.warehouse.start(config,client)
 // .then(function(value){
 // 	console.log(value);
@@ -234,54 +293,16 @@ var client = mysql.createConnection({
 // 	console.log(value);
 // })
 
+// service.nurtrueFromDB.start(config,client).then(function(value){
+// 	console.log(value);
+// 	client.end()
+// })
 /**
 * 12、批量文件输出
 */
 
-service.batExecutor.start(config).then((value)=>{
-	console.log(value);
-})
-
-
-// async.series({
-// 	archive:function(callback){
-// 		service.archive.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	generator:function(callback){
-// 		service.generator.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	prepare:function(callback){
-// 		service.excel.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	attribute:function(callback){
-// 		service.attribute.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	attributeConvert:function(callback){
-// 		service.attributeConvert.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	brand:function(callback){
-// 		service.brand.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	brandConvert:function(callback){
-// 		service.brandConvert.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	category:function(callback){
-// 		service.category.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	categoryCodeConvert:function(callback){
-// 		service.categoryCode.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	categoryAttribute:function(callback){
-// 		service.categoryAttr.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	warehouse:function(callback){
-// 		service.warehouse.start(config,client).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	},
-// 	csvGenerator:function(callback){
-// 		service.nurture.start(config).then(value => {console.log(value,"\n");callback(null,"success")})
-// 	}
-// },function(err,result){
-// 	console.log(config.splitSymbol,"\n","summary:");
-// 	console.log(result);
-// 	client.end();
+// service.batExecutor.start(config).then((value)=>{
+// 	console.log(value);
 // })
+
+

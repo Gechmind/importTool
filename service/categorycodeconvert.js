@@ -5,21 +5,28 @@ var basePromise = require("../lib/basePromise");
 //[[code -categoryId-name]...]
 
 
-exports.start = function(config){
-	console.log(config.splitSymbol);
-	console.log("categoryCodeConvert start");
-
-	var dir = path.join(config.rootPath,config.rawCategory || "./data/categoryCode.json");
+function getCategoryMap(config){
 	var mapping = JSON.parse(fs.readFileSync(path.join(config.rootPath,"./mapping/categoryMapping.json")));
-	var productCateCode = JSON.parse(fs.readFileSync(dir));
-
-
 	var map = new Map();
 	for(let relation of mapping){
 		// console.log(relation);
 		map.set(relation[0],relation[1]);
 		// map.set(relation[2],relation[1]);
 	}
+	return map;
+}
+
+exports.getCategoryMap = getCategoryMap;
+
+exports.start = function(config){
+	console.log(config.splitSymbol);
+	console.log("categoryCodeConvert start");
+
+	var dir = path.join(config.rootPath,config.rawCategory || "./data/categoryCode.json");
+	var productCateCode = JSON.parse(fs.readFileSync(dir));
+
+	var map = getCategoryMap(config);
+	
 
 	var categoryString = "";
 	var categoryArray = new Array();

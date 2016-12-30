@@ -11,6 +11,14 @@ var nurture = require("./nurture.js");
 var archive = require("./archive.js");
 var generator = require("./generator.js");
 var batExecutor = require("./batExecutor.js");
+var dbClient = require("./dbClient.js");
+var onlineData = require("./dbQuery.js");
+var nurtrueFromDB = require("./nurtureFromDB.js");
+
+
+module.exports.onlineData = onlineData;
+
+module.exports.dbClient = dbClient;
 
 module.exports.batExecutor = batExecutor;
 
@@ -36,4 +44,6 @@ module.exports.categoryCode = categoryCodeConvert;
 
 module.exports.warehouse = warehouseService;
 
-module.exports.nurture = nurture;
+module.exports.nurtureFromExcel = nurture;
+
+module.exports.nurtrueFromDB = nurtrueFromDB;

@@ -39,6 +39,7 @@ nodejs 6.4 以上
 + archivePrefix: 归档目录前缀,目前仅归档csv目录内文件
 + currentIds:相关业务表字段主键起始值。如果不设置该字段，则从client设置的数据库中读取。对于线上的数据，应该执行./sql/startId.sql 中sql,用执行结果设置本字段。__注意sql中字段顺序需要和 service/generator.js中configGenerate 配置一致__
 + treeName:类目树名称 暨 最终输出文件名
++ categoryAttValueLimit:类目属性值限制，个别属性值比较多，高于此数丢弃
 
 4、数据库配置 => dbConfig __must__
 
@@ -60,13 +61,12 @@ nodejs 6.4 以上
     + singleDatabase = false  时必须是[schemaX.tab1,schemaY.tab2...]形式,将根据解析的schema分别生成对应导出文件。
 + dumpFolder：导出目录
 
-5、~~export.bat数据库脚本输出配置~~ __@deprecate__
-+ mysqldumpExePath="C:\Program Files\mysql-5.6.31-winx64\bin\mysqldump.exe"
-+ dbHost=172.16.1.30
-+ dbUser=root
-+ dbPassword=root
-+ rootPath=%~dp0 
-+ savePath= "C:\Program Files\Git\importTool\csv\"
+5、线上数据配置 => onlineConfig  
++  stratIndex     线上数据查询起始索引，具体含义由对应sql决定
++  pageSize       线上数据查询页大小
++  totalLimit     线上数据上线
++  sigleFileRows  输出文件行数
++  batch   批次名，默认使用时间戳
 
 
 
@@ -75,6 +75,7 @@ nodejs 6.4 以上
 
 * __archive__:_文件归档、文件夹创建_ 
     * => __generator__:_id 生成器初始化_  
+        * => __onlineData__:线上数据(价格云)
         * => __excel__:_输入文件解析_ 
             * => __attribute__:_属性去重，持久化_
                 * => __attributeConvert__:_属性转换 (name:name => id:id)_
@@ -85,7 +86,8 @@ nodejs 6.4 以上
                                 * => __categoryCode__:_类目数据转换_
                                     * => __categoryAttr__:_类目属性_
                                         * => __warehouse__:_仓库初始化_
-                                            * => __nurture__:_内容替换 & csv文件输出_ 
+                                            * => __nurtureFromExcel__:_内容替换 & csv文件输出_ 
+                                            * => __nurtrueFromDB__内容替换 & csv文件输出
                                                 * => __batExecutor__:_sql脚本导出_
                                             
 ## 主要业务操作
@@ -219,5 +221,6 @@ nodejs 6.4 以上
 
 + ~~不需要全量读取的数据用流的方式替换~~
 + ~~nodejs  es6切换后，验证csv文件读取~~
++ 数据总记录汇总
 
 

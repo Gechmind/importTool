@@ -3,6 +3,8 @@ var path = require("path");
 var fs = require('fs');
 var stringify = require("csv-stringify");
 var iconv = require('iconv-lite');
+var basePromise = require("../lib/basePromise.js")
+
 
 function  textRead(fileName){
 
@@ -44,6 +46,10 @@ function rawExcel(config){
 }
 
 
+
+
+
+
 function rawDataReplace(config){
 
 	var brandColumn = config.excel.brandColumn || 3;  // 品牌所在列
@@ -70,7 +76,7 @@ function rawDataReplace(config){
 				mpData[i][brandColumn] = values[0][i -1];
 				mpData[i][categoryCodeColumn] = values[1][i-1];
 				mpData[i][attributeColumn] = values[2][i-1];
-				csvWriter(config,[haveSetMinHead ?mpData[i].concat(config.csv.minDefault) : mpData[i]]);
+				csvWriter(config,[haveSetMinHead ? mpData[i].concat(config.csv.minDefault) : mpData[i]]);
 			}
 			
 			// if(i == 1){
@@ -107,7 +113,6 @@ function csvWriter(config,row){
 	}catch(err){
 		console.log(err);
 	}
-	
 }
 
 

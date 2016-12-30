@@ -26,6 +26,7 @@ function getAttrtibuteJson(config){
 * 对独立属性进行处理,是独立属性则加入对应的属性列，如果不存在则属性列写入空
 */
 function independenceAttrExtract(jsonObject){
+	// console.log(jsonObject);
 	for(let i = 0;i < independenceAttr.length ;i++){
 		let  name = independenceAttr[i];
 		let  outString = independenceOutput[i];
@@ -71,7 +72,8 @@ function  getAttriPairList(jsonList){
 			}
 		}
 	}
-	return Array.from(originMap);
+	var  t = Array.from(originMap);
+	return  t;
 }
 
 
@@ -185,6 +187,7 @@ exports.start = function(iconfig,iclient){
 	client = iclient;
 	console.log(config.splitSymbol);
 	console.log("attribute add start");
+	
 	/**
 	* 方法入口,数据库操作
 	*/

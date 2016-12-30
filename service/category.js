@@ -87,6 +87,7 @@ var nodeArray;
 function getRootNode(config){
 	var dir = path.join(config.rootPath,config.category || "./data/category.json")
 	categoryJson = JSON.parse(fs.readFileSync(dir));
+	// console.log(categoryJson);
 	nodeArray = new Array(categoryJson.length);
 
 	for(let index = 0;index < categoryJson.length; index++ ){
@@ -95,6 +96,7 @@ function getRootNode(config){
 	}
 
 	var rootNode = new Node(-1);
+	// console.log(JSON.stringify(Array.from(levelMap)));
 
 	// 0 -  code 1 - parentcode 2 - name 3 -url  4-level 5-leaf 
 	for(let index = 0;index < categoryJson.length; index++){
@@ -113,6 +115,7 @@ function getRootNode(config){
 			currentNode.setParentNodeIndex(-1);
 		}else{
 			let parentIndex = levelMap.get(parentcode);
+			// console.log(currentNode);
 			setSonNode(parentIndex,currentNode);
 		}
 	}
@@ -123,9 +126,11 @@ function getRootNode(config){
 //增加链接  有可能会预先创建父Node
 function setSonNode(parentIndex,node){
 	let parentNode = getNode(nodeArray,parentIndex);
+	// console.log(parentNode);
 	parentNode.isLeaf = false;
 	node.setParentNodeIndex(parentIndex);
 	parentNode.addSon(node);
+	// console.log(parentNode);
 }
 
 //获取节点,不存在则创建
@@ -398,7 +403,10 @@ exports.start = function(iconfig,dbClient){
 
 exports.validate = function(config){
 	var rootNode = getRootNode(config);
+	rootNode.parentId = 0;
+	console.log(rootNode);
 	printNode(rootNode,false);
 	return Promise.resolve("done");
 }
+
 

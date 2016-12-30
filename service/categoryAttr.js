@@ -3,6 +3,7 @@ var fs = require("fs");
 var path = require('path');
 var Promise = require("bluebird");
 var basePromise = require("../lib/basePromise");
+// var heapdump = require('heapdump');
 
 var  valueCounter = 0;
 var  attributeCounter = 0;
@@ -134,21 +135,22 @@ function insertChain(categoyId,attrinameId,sortValue){
 		   .then(function(cateAttNameId){
 				attributeCounter++;
 				return getAttributeValuesByNameId(attrinameId).then(function(attriValueIdObjectArray){
-					
-					if(Array.isArray(attriValueIdObjectArray)){
-							return Promise.all(attriValueIdObjectArray.map(function(attributeIdObject,index){
-									return insertCategoryAttrValue(cateAttNameId,attributeIdObject.id,index);
-								   }))
-								   .then(values=>{
-									  //console.log("yy" + values);
-								   })
-								   .finally(err=>{
-								   		if(err){
-								   			 console.log(err);
-								   		}
-								   });
+					console.log(attriValueIdObjectArray.length);
+					//对于值比较的多丢弃，否则会造成方法栈溢出
+					if(Array.isArray(attriValueIdObjectArray) && attriValueIdObjectArray.length <= config.categoryAttValueLimit){
+						return Promise.all(attriValueIdObjectArray.map(function(attributeIdObject,index){
+								return insertCategoryAttrValue(cateAttNameId,attributeIdObject.id,index);
+							   }))
+							   .then(values=>{
+								  // console.log("yy" + values);
+							   })
+							   .finally(err=>{
+							   		if(err){
+							   			 console.log(err);
+							   		}
+							   });
 					}
-					// console.log("属性value组大小：", attrinameId,attriValueIdObjectArray.length);
+					console.log("属性value组大小：", attrinameId,attriValueIdObjectArray.length);
 				
 				});
 			})

@@ -6,13 +6,43 @@ var attrbuteOutString = "";
 var attrbuteOutArray = new Array();
 
 
+function getAttributeMap(config){
+	var mapping = JSON.parse(fs.readFileSync(path.join(config.rootPath,"./mapping/attributeMapping.json")));
+	var map = new Map();
+	for(var keyMap of mapping){
+		for(var key in keyMap){
+			map.set(key,keyMap[key]);
+		}
+	}
+	return map;
+}
+
+function getAttributeIdPair(namePair,map){
+	// var attributeWithBrand = ['颜色','尺码']
+	let obj  = {};
+	// console.log(namePair);
+	for(var name in namePair){
+		let searchKey = name + namePair[name];
+		let idToId = map.get(searchKey);
+		// console.log("x"+searchKey);
+		// console.log("y"+idToId);
+		if(idToId){
+				obj[idToId[0]] = idToId[1];
+		}
+	}
+	return obj;
+}
+
+
+
+
 
 function convert(config){
 	var attDir = path.join(config.rootPath,config.attribute || './data/attribute.json');
 	var brandDir = path.join(config.rootPath,config.brand || './data/brand.json');
 
 	//[{名称-值 : [名称id,键值id]}...]
-	var mapping = JSON.parse(fs.readFileSync(path.join(config.rootPath,"./mapping/attributeMapping.json")));
+	
 	var attriPairJson = JSON.parse(fs.readFileSync(attDir));
 	var brandJson = JSON.parse(fs.readFileSync(brandDir));
 
@@ -20,13 +50,8 @@ function convert(config){
 	var attributeWithBrand = config.attributeWithBrand;
 	//键值容器
 
-	var map = new Map();
-	for(var keyMap of mapping){
-		for(var key in keyMap){
-			map.set(key,keyMap[key]);
-		}
-	}
-
+	
+	var map = getAttributeMap(config);
 	//名值对转换  {"颜色":"蓝色","尺码":"4XL"} 装换为 id To id 形式
 	for(var index in attriPairJson){
 		attributeJson = attriPairJson[index]
@@ -53,6 +78,8 @@ function convert(config){
 	return attrbuteOutArray;
 }
 
+exports.getAttributeMap = getAttributeMap;
+exports.getAttributeIdPair = getAttributeIdPair;
 
 exports.start = function(config){
 	console.log(config.splitSymbol);
