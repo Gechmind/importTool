@@ -29,7 +29,7 @@ TRUNCATE  table  product.picture;
 TRUNCATE  table  product.merchant_picture;
  
 #商品清理：基本信息、商品属性、 商品图片
-TRUNCATE  table  product.merchant_product;
+TRUNCATE  table  product.merchant_productW;
 TRUNCATE  table  product.merchant_prod_att_name;
 TRUNCATE  table  product.merchant_prod_att_value;
 TRUNCATE  table  product.merchant_prod_describe;

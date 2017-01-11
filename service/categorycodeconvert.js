@@ -2,7 +2,7 @@ var fs = require("fs");
 var path = require("path");
 var Promise = require("bluebird");
 var basePromise = require("../lib/basePromise");
-//[[code -categoryId-name]...]
+//[[code -categoryId-name-path]...]
 
 
 function getCategoryMap(config){
@@ -10,7 +10,13 @@ function getCategoryMap(config){
 	var map = new Map();
 	for(let relation of mapping){
 		// console.log(relation);
-		map.set(relation[0],relation[1]);
+		//选择获取id还是获取path
+		if(config.csvMode){
+			map.set(relation[0],relation[3]);
+		}else{
+			map.set(relation[0],relation[1]);
+		}
+		
 		// map.set(relation[2],relation[1]);
 	}
 	return map;

@@ -13,10 +13,21 @@ var generator = require("./generator.js");
 var batExecutor = require("./batExecutor.js");
 var dbClient = require("./dbClient.js");
 var onlineData = require("./dbQuery.js");
+var localData = require("./dbQueryLocal.js");
 var nurtrueFromDB = require("./nurtureFromDB.js");
 
 
+var attributeCsv = require("./csvBundleAttribute.js");
+
+var categoryCsv = require("./csvBundleCategory.js");
+
+var brandCsv = require("./csvBundleBrand.js");
+
+
 module.exports.onlineData = onlineData;
+
+
+module.exports.localData = localData;
 
 module.exports.dbClient = dbClient;
 
@@ -47,3 +58,11 @@ module.exports.warehouse = warehouseService;
 module.exports.nurtureFromExcel = nurture;
 
 module.exports.nurtrueFromDB = nurtrueFromDB;
+
+
+
+module.exports.attributeCsv = attributeCsv;
+
+module.exports.categoryCsv = categoryCsv;
+
+module.exports.brandCsv = brandCsv;

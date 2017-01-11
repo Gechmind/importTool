@@ -1,0 +1,66 @@
+-- 类目
+SELECT
+	CATEGORY_CODE AS "code",
+	PARENT_CODE AS "parentCode",
+	CATEGORY_NAME AS "name",
+	CATEGORY_URL AS "url",
+	LEAF AS "leaf",
+	LEVEL AS "level"
+FROM
+	t_category
+WHERE
+	(SITE_ID = 1126)
+AND (IS_DELETE = 0)
+AND (CATEGORY_CODE IS NOT NULL)
+LIMIT 10 OFFSET 100
+
+-- 母婴数据
+
+SELECT
+	tp.PRODUCT_CODE AS "code",
+	tp.PRODUCT_NAME AS "name",
+	tp.SUB_TITLE AS "title",
+	tc.CATEGORY_CODE AS "catecode",
+	tc.CATEGORY_NAME AS "catename",
+	tp.BRAND_NAME AS "brandname",
+	pa.PRODUCT_ATTR AS "attr",
+	tps.PRODUCT_PRICE AS "price",
+	tps.MARKET_PRICE AS "mkprice",
+	pp.PIC_URL AS "urls",
+	tp.DESCRIPTION AS "content"
+FROM
+	(
+		SELECT
+			itp.id
+		FROM
+			t_product `itp`
+		WHERE
+			(itp.SITE_ID = 1126)
+		AND (itp.DESCRIPTION IS NOT NULL)
+		AND (itp.DESCRIPTION != '')
+		LIMIT 100 OFFSET 1000
+	) `itp`
+INNER JOIN t_product `tp` ON (itp.id = tp.id)
+INNER JOIN t_product_stat `tps` ON (
+	tp.PRODUCT_CODE = tps.PRODUCT_CODE
+	and tps.SITE_ID  = tp.SITE_ID
+	AND tps.PRODUCT_PRICE > 0
+	AND tps.MARKET_PRICE > 0
+)
+INNER JOIN t_category `tc` ON (
+	tc.CATEGORY_CODE = tp.CATEGORY_ID
+	and tp.SITE_ID = tc.SITE_ID
+)
+INNER JOIN t_product_attribute `pa` ON (
+	tp.PRODUCT_CODE = pa.PRODUCT_CODE
+	and tp.SITE_ID = pa.SITE_ID
+)
+INNER JOIN t_product_picture `pp` ON (
+	tp.PRODUCT_CODE = pp.PRODUCT_CODE
+	and tp.SITE_ID = pp.SITE_ID
+	AND pp.PIC_URL IS NOT NULL
+	AND pp.PIC_URL != ''
+)
+
+
+--服装

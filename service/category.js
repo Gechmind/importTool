@@ -38,35 +38,8 @@ function Node(index){
 	this.parentCode;
 	this.listSort;
 	this.isLeaf;
-}
-
-Node.prototype.setParentNodeIndex = function(parentNodeIndex){
-		this.parentNodeIndex = parentNodeIndex;
-};
-
-Node.prototype.setCategoryId = function(categoryId){
-		this.categoryId = categoryId;
-};
-
-
-Node.prototype.setTreeId = function(treeId){
-		this.treeId = treeId;
-};
-
-Node.prototype.setParentId = function(parentId){
-		this.parentId = parentId;
-};
-
-Node.prototype.setId = function(id){
-		this.id = id;
-};
-
-Node.prototype.setCode = function(code){
-		this.code = code;
-};
-
-Node.prototype.setParentcode= function(parentCode){
-	this.parentCode = parentCode;
+	this.path;
+	this.url;
 }
 
 Node.prototype.addSon = function(node) {
@@ -96,6 +69,7 @@ function getRootNode(config){
 	}
 
 	var rootNode = new Node(-1);
+	rootNode.path = config.cateSplitSymbol;
 	// console.log(JSON.stringify(Array.from(levelMap)));
 
 	// 0 -  code 1 - parentcode 2 - name 3 -url  4-level 5-leaf 
@@ -104,15 +78,17 @@ function getRootNode(config){
 		let parentcode = category[1];
 		let code = category[0];
 		let name = category[2];
+		let url = category[3];
 		
 		var currentNode = getNode(nodeArray,index);
-		currentNode.setCode(code);
-		currentNode.setParentcode(parentcode);
+		currentNode.code = code;
+		currentNode.parentCode = parentcode;
 		currentNode.name = name;
+		currentNode.url = url;
 
 		if(parentcode == 0){
 			rootNode.addSon(currentNode);
-			currentNode.setParentNodeIndex(-1);
+			currentNode.parentNodeIndex = -1;
 		}else{
 			let parentIndex = levelMap.get(parentcode);
 			// console.log(currentNode);
@@ -128,7 +104,7 @@ function setSonNode(parentIndex,node){
 	let parentNode = getNode(nodeArray,parentIndex);
 	// console.log(parentNode);
 	parentNode.isLeaf = false;
-	node.setParentNodeIndex(parentIndex);
+	node.parentNodeIndex = parentIndex;
 	parentNode.addSon(node);
 	// console.log(parentNode);
 }
@@ -138,6 +114,7 @@ function getNode(nodeArray,index){
 	let node = nodeArray[index];
 	if(!node){
 		node = new Node(index);
+		node.isLeaf = true;
 		nodeArray[index] = node;
 	}
 	return node;
@@ -149,14 +126,14 @@ function getNode(nodeArray,index){
 */
 function rootData(){
 	return insertCategoryTree(config.treeName + "后台类目树",1).then(function(treeId){
-		rootNode.setTreeId(treeId);
+		rootNode.treeId  = treeId;
 		return Promise.resolve(insertCategory(config.treeName +"后台类目"))
 	}).then(function(categoryId){
-		rootNode.setCategoryId(categoryId);
+		rootNode.categoryId = categoryId;
 		//parentId,categoryTreeId,categoryId,listSort
 		return insertCategoryTreeNode(0,rootNode.treeId,categoryId,1);
 	}).then(function(categoryNodeId){
-		rootNode.setId(categoryNodeId);
+		rootNode.id = categoryNodeId;
 		if(rootNode.sonNode){
 			for(let son of rootNode.sonNode){
 				son.parentId = categoryNodeId;
@@ -164,6 +141,7 @@ function rootData(){
 		}
 		return categoryNodeId;
 	}).then(function(categoryNodeId){
+		//type-1 后台
 		return normalNode(nodeArray,1)
 	});
 }
@@ -172,7 +150,7 @@ function frontRootCate(){
 	var treeIdVar;
 	return insertCategoryTree(config.treeName + "前台类目树",2).then(function(treeId){
 		treeIdVar = treeId;
-		rootNode.setTreeId(treeId);
+		rootNode.treeId = treeId;
 		return  insertPage(config.treeName)
 				.then(function(pageId){
 						return  insertPageCategoryTree(pageId,treeId);
@@ -182,11 +160,11 @@ function frontRootCate(){
 				});
 	}).then(function(categoryId){
 		// console.log(categoryId);
-		rootNode.setCategoryId(categoryId);
+		rootNode.categoryId = categoryId;
 		//parentId,categoryTreeId,categoryId,listSort
 		return   insertCategoryTreeNode(0,treeIdVar,categoryId,1);
 	}).then(function(categoryNodeId){
-		rootNode.setId(categoryNodeId);
+		rootNode.id = categoryNodeId;
 		if(rootNode.sonNode){
 			for(let son of rootNode.sonNode){
 				son.parentId = categoryNodeId;
@@ -194,7 +172,8 @@ function frontRootCate(){
 		}
 		return categoryNodeId;
 	}).then(function(categoryNodeId){
-		return normalNode(nodeArray,2,rootNode)
+		//type-2 前台
+		return normalNode(nodeArray,2)
 	})
 }
 /**
@@ -209,14 +188,14 @@ function normalNode(nodeArray,type){
 				}).then(function(categoryNodeId){
 					//后台类目写入映射关系
 					if(type === 1){
-						mapArray.push([node.code,categoryNodeId,node.name])
+						mapArray.push([node.code,categoryNodeId,node.name,node.path])
 						// console.log(categoryNodeId);
 					}
 					//前台类目在修改本节点Id之前再nodeRealation写入关联关系
 						
 					let backNodeId = node.id;
 					
-					node.setId(categoryNodeId);
+					node.id = categoryNodeId;
 					if(node.sonNode){
 						for(let son of node.sonNode){
 							son.parentId = categoryNodeId;
@@ -232,7 +211,7 @@ function normalNode(nodeArray,type){
 }
 
 /*
-* 
+*  递归按层级整理node
 */
 function reArray(node,sortedArray){
 	if(node.index != -1){
@@ -241,6 +220,14 @@ function reArray(node,sortedArray){
 
 	if(node.sonNode){
 		for(let son of node.sonNode){
+			//整理节点路径
+			if(node.index != -1){
+				son.path = node.path + config.cateSplitSymbol + son.name;
+			}else{
+				son.path = node.path + son.name;
+			}
+			//TODO 处理叶子节点重复的问题，需要额外建立一张映射关系表，记录
+			console.log(son.path);
 			reArray(son,sortedArray);
 		}
 	}
@@ -356,6 +343,14 @@ function insertRelation(frontNodeId,backNodeId){
 }
 
 
+exports.getRootNode = function(iconfig){
+	config = iconfig;
+	config.cateSplitSymbol = config.cateSplitSymbol || "|";
+	companyId = config.companyId;
+	rootNode = getRootNode(config);
+	rootNode.parentId = 0;
+	return rootNode;
+}
 /**
 * 方法入口
 * printNode 类目展示
@@ -374,6 +369,7 @@ function insertRelation(frontNodeId,backNodeId){
 exports.start = function(iconfig,dbClient){
 	config = iconfig;
 	client = dbClient;
+	config.cateSplitSymbol = config.cateSplitSymbol || "|";
 	console.log(config.splitSymbol);
 	console.log("category add start");
 
@@ -401,6 +397,8 @@ exports.start = function(iconfig,dbClient){
 	})
 }
 
+
+
 exports.validate = function(config){
 	var rootNode = getRootNode(config);
 	rootNode.parentId = 0;
@@ -408,5 +406,6 @@ exports.validate = function(config){
 	printNode(rootNode,false);
 	return Promise.resolve("done");
 }
+
 
 

@@ -55,20 +55,34 @@ function emptyPromise(values,startIndex){
 		x.push(row.code + "\t");
 		x.push(row.name);
 		x.push(row.title);
+
 		if(!cateMap.get(row.catecode)){
 			console.log(row.catecode);
 			continue;
 		}
 		x.push(cateMap.get(row.catecode) + "\t");
 		// x.push(row.catename);
-		x.push(brandMap.get(row.brandname));
+		if(config.csvMode){
+			var name = row.brandname;
+	  	  	name = name.replace(" ♥关注","");
+			x.push(name);
+		}else{
+			x.push(brandMap.get(row.brandname));
+		}
+		
 		x.push(row.price);
 		x.push(row.mkprice);
 		x.push(row.urls);
 		x.push(row.content);
-		var attIdPair = attrService.getAttributeIdPair(JSON.parse(row.attr),attrMap);
-		// console.log(JSON.stringify(attIdPair));
-		x.push(attIdPair);
+		if(config.csvMode){
+			x.push(row.attr);
+		}else{
+			var attIdPair = attrService.getAttributeIdPair(JSON.parse(row.attr),attrMap);
+			// console.log(JSON.stringify(attIdPair));
+			x.push(attIdPair);
+		}
+		//初始销量
+		x.push(Math.floor(Math.random(1)*1000))
 		if(setMinHead){
 			x = x.concat(config.csv.minDefault)
 		}
